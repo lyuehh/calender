@@ -1,0 +1,14 @@
+{
+  "roots": [
+    "cal"
+  ],
+  "packages": [
+    {
+      "name": "cal",
+      "version": "0.1.0",
+      "dependencies": [],
+      "devDependencies": []
+    }
+  ],
+  "configVersion": 1
+}
