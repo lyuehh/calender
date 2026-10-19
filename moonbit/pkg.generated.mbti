@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "username/moonbit"
+
+// Values
+pub fn month_lines(Int32, Int32) -> Array[String]
+
+pub fn print_month(Int32, Int32) -> Unit
+
+pub fn print_year(Int32) -> Unit
+
+pub fn today() -> (Int32, Int32, Int32)
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
