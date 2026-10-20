@@ -1,44 +1,56 @@
 package main
 
 import (
-    "flag"
-    "fmt"
-    "os"
-    "strconv"
+	"fmt"
+	"os"
 
-    "cal/internal/calendar"
+	"cal/internal/calendar"
 )
 
 func usage() {
-    fmt.Fprintln(os.Stderr, "Usage: cal [month] year  OR  cal year  OR  cal")
-    os.Exit(2)
+	fmt.Fprintln(os.Stderr, "Usage: cal [month] year  OR  cal year  OR  cal")
+	os.Exit(2)
+}
+
+// Parse only ASCII decimal digits, checking the bound before any overflow.
+func parseNumber(text string, maximum int) int {
+	if text == "" {
+		usage()
+	}
+	value := 0
+	for _, digit := range text {
+		if digit < '0' || digit > '9' {
+			usage()
+		}
+		value = value*10 + int(digit-'0')
+		if value > maximum {
+			usage()
+		}
+	}
+	if value < 1 {
+		usage()
+	}
+	return value
 }
 
 func main() {
-    flag.Parse()
-    args := flag.Args()
+	args := os.Args[1:]
 
-    switch len(args) {
-    case 0:
-        // current month
-        y, m, _ := calendar.Today()
-        calendar.PrintMonth(os.Stdout, y, m)
-    case 1:
-        // treat as year
-        year, err := strconv.Atoi(args[0])
-        if err != nil {
-            usage()
-        }
-        calendar.PrintYear(os.Stdout, year)
-    case 2:
-        // month year
-        month, err1 := strconv.Atoi(args[0])
-        year, err2 := strconv.Atoi(args[1])
-        if err1 != nil || err2 != nil || month < 1 || month > 12 {
-            usage()
-        }
-        calendar.PrintMonth(os.Stdout, year, month)
-    default:
-        usage()
-    }
+	switch len(args) {
+	case 0:
+		// current month
+		y, m, _ := calendar.Today()
+		calendar.PrintMonth(os.Stdout, y, m)
+	case 1:
+		// treat as year
+		year := parseNumber(args[0], 9999)
+		calendar.PrintYear(os.Stdout, year)
+	case 2:
+		// month year
+		month := parseNumber(args[0], 12)
+		year := parseNumber(args[1], 9999)
+		calendar.PrintMonth(os.Stdout, year, month)
+	default:
+		usage()
+	}
 }

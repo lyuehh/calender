@@ -24,34 +24,13 @@ def pad_right(text : String, width : Int32) : String
   text + " " * (width - text.bytesize)
 end
 
-def leap_year?(year : Int32) : Bool
-  (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
-end
-
 def days_in_month(year : Int32, month : Int32) : Int32
-  case month
-  when 1, 3, 5, 7, 8, 10, 12 then 31
-  when 4, 6, 9, 11           then 30
-  when 2                     then leap_year?(year) ? 29 : 28
-  else
-    raise "invalid month"
-  end
+  Time.days_in_month(year, month)
 end
 
-# Zeller's congruence, converted to 0 = Sunday through 6 = Saturday.
+# Crystal's weekday values are 1 = Monday through 7 = Sunday.
 def first_weekday(year : Int32, month : Int32) : Int32
-  adjusted_year = year
-  adjusted_month = month
-  if adjusted_month <= 2
-    adjusted_year -= 1
-    adjusted_month += 12
-  end
-
-  century = adjusted_year // 100
-  year_of_century = adjusted_year % 100
-  zeller = (1 + (13 * (adjusted_month + 1)) // 5 + year_of_century +
-            year_of_century // 4 + century // 4 + 5 * century) % 7
-  (zeller + 6) % 7
+  Time.utc(year, month, 1).day_of_week.to_i % 7
 end
 
 def month_lines(year : Int32, month : Int32) : Array(String)
@@ -99,14 +78,16 @@ def print_year(year : Int32)
   end
 end
 
-def parse_int(value : String) : Int32
-  value.to_i?(whitespace: false) || usage
-end
-
-def parse_month(value : String) : Int32
-  month = parse_int(value)
-  usage unless (1..12).includes?(month)
-  month
+def parse_number(text : String, maximum : Int32) : Int32
+  usage if text.empty?
+  value = 0
+  text.each_byte do |digit|
+    usage unless digit >= 48 && digit <= 57
+    value = value * 10 + digit.to_i - 48
+    usage if value > maximum
+  end
+  usage if value < 1
+  value
 end
 
 case ARGV.size
@@ -114,9 +95,9 @@ when 0
   now = Time.local
   print_month(now.year, now.month)
 when 1
-  print_year(parse_int(ARGV[0]))
+  print_year(parse_number(ARGV[0], 9999))
 when 2
-  print_month(parse_int(ARGV[1]), parse_month(ARGV[0]))
+  print_month(parse_number(ARGV[1], 9999), parse_number(ARGV[0], 12))
 else
   usage
 end

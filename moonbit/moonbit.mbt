@@ -12,28 +12,18 @@ let month_names : Array[String] = [
 ]
 
 ///|
-/// Returns the current year, month (1-12) and day based on the system clock (UTC).
+/// Returns the current year, month (1-12) and day in the local time zone.
 pub fn today() -> (Int32, Int32, Int32) {
-  // `@env.now()` returns milliseconds since the Unix epoch (UTC).
-  let ms = @env.now()
-  let days = (ms / 1000UL / 86400UL).to_int()
-  civil_from_days(days)
+  local_date((@env.now() / 1000UL).reinterpret_as_int64())
 }
 
 ///|
-/// Converts a count of days since 1970-01-01 into (year, month, day).
-/// Algorithm from Howard Hinnant's `civil_from_days`.
-fn civil_from_days(z_in : Int32) -> (Int32, Int32, Int32) {
-  let z = z_in + 719468
-  let era = (if z >= 0 { z } else { z - 146096 }) / 146097
-  let doe = z - era * 146097
-  let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365
-  let y = yoe + era * 400
-  let doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
-  let mp = (5 * doy + 2) / 153
-  let d = doy - (153 * mp + 2) / 5 + 1
-  let m = if mp < 10 { mp + 3 } else { mp - 9 }
-  (if m <= 2 { y + 1 } else { y }, m, d)
+extern "C" fn local_date_packed(seconds : Int64) -> Int32 = "cal_local_date"
+
+///|
+fn local_date(seconds : Int64) -> (Int32, Int32, Int32) {
+  let date = local_date_packed(seconds)
+  (date / 10000, date / 100 % 100, date % 100)
 }
 
 ///|
@@ -68,7 +58,7 @@ fn days_in(month : Int32, year : Int32) -> Int32 {
     1 | 3 | 5 | 7 | 8 | 10 | 12 => 31
     4 | 6 | 9 | 11 => 30
     2 => if is_leap(year) { 29 } else { 28 }
-    _ => 30
+    _ => abort("invalid month")
   }
 }
 

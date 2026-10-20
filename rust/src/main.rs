@@ -103,16 +103,24 @@ fn print_year(year: i32) {
     }
 }
 
-fn parse_i32(value: &str) -> i32 {
-    value.parse::<i32>().unwrap_or_else(|_| usage())
-}
-
-fn parse_month(value: &str) -> u32 {
-    let month = value.parse::<u32>().unwrap_or_else(|_| usage());
-    if !(1..=12).contains(&month) {
+fn parse_number(text: &str, maximum: i32) -> i32 {
+    if text.is_empty() {
         usage();
     }
-    month
+    let mut value = 0;
+    for digit in text.bytes() {
+        if !digit.is_ascii_digit() {
+            usage();
+        }
+        value = value * 10 + i32::from(digit - b'0');
+        if value > maximum {
+            usage();
+        }
+    }
+    if value < 1 {
+        usage();
+    }
+    value
 }
 
 fn main() {
@@ -124,12 +132,12 @@ fn main() {
             print_month(today.year(), today.month());
         }
         1 => {
-            let year = parse_i32(&args[0]);
+            let year = parse_number(&args[0], 9999);
             print_year(year);
         }
         2 => {
-            let month = parse_month(&args[0]);
-            let year = parse_i32(&args[1]);
+            let month = parse_number(&args[0], 12) as u32;
+            let year = parse_number(&args[1], 9999);
             print_month(year, month);
         }
         _ => usage(),

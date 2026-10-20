@@ -1,8 +1,7 @@
 const std = @import("std");
-const c = @cImport({
-    @cInclude("stdio.h");
-    @cInclude("time.h");
-});
+extern "c" fn cal_write(data: [*]const u8, length: usize) void;
+extern "c" fn cal_usage() noreturn;
+extern "c" fn cal_local_date() i32;
 
 const month_width: usize = 20;
 const week_header = "Su Mo Tu We Th Fr Sa";
@@ -22,8 +21,7 @@ const month_names = [_][]const u8{
 };
 
 fn usage() noreturn {
-    _ = c.fprintf(c.stderr(), "Usage: cal [month] year  OR  cal year  OR  cal\n");
-    std.process.exit(2);
+    cal_usage();
 }
 
 const MonthBlock = [8][month_width]u8;
@@ -71,9 +69,10 @@ fn fillSpaces(line: *[month_width]u8) void {
 
 fn writeCentered(line: *[month_width]u8, text: []const u8) void {
     fillSpaces(line);
-    const actual = @min(text.len, month_width);
-    const left = (month_width - actual) / 2;
-    @memcpy(line[left .. left + actual], text[0..actual]);
+    // Valid years are 1..9999, so every English month title fits.
+    std.debug.assert(text.len <= month_width);
+    const left = (month_width - text.len) / 2;
+    @memcpy(line[left .. left + text.len], text);
 }
 
 fn writeWeekRow(line: *[month_width]u8, first_weekday: u32, total_days: u32, day_ptr: *u32, week_index: usize) void {
@@ -111,8 +110,8 @@ fn buildMonthBlock(year: i32, month: u32) MonthBlock {
 }
 
 fn writeLine(line: []const u8) void {
-    _ = c.fwrite(line.ptr, 1, line.len, c.stdout());
-    _ = c.fputc('\n', c.stdout());
+    cal_write(line.ptr, line.len);
+    cal_write("\n", 1);
 }
 
 fn printMonth(year: i32, month: u32) void {
@@ -130,34 +129,34 @@ fn printYear(year: i32) void {
         const right = buildMonthBlock(year, quarter + 2);
 
         for (0..8) |idx| {
-            _ = c.fwrite(&left[idx], 1, month_width, c.stdout());
-            _ = c.fwrite("  ", 1, 2, c.stdout());
-            _ = c.fwrite(&middle[idx], 1, month_width, c.stdout());
-            _ = c.fwrite("  ", 1, 2, c.stdout());
-            _ = c.fwrite(&right[idx], 1, month_width, c.stdout());
-            _ = c.fputc('\n', c.stdout());
+            cal_write(&left[idx], month_width);
+            cal_write("  ", 2);
+            cal_write(&middle[idx], month_width);
+            cal_write("  ", 2);
+            cal_write(&right[idx], month_width);
+            cal_write("\n", 1);
         }
-        _ = c.fputc('\n', c.stdout());
+        cal_write("\n", 1);
     }
 }
 
-fn parseI32(value: []const u8) i32 {
-    return std.fmt.parseInt(i32, value, 10) catch usage();
-}
-
-fn parseMonth(value: []const u8) u32 {
-    const month = std.fmt.parseInt(u32, value, 10) catch usage();
-    if (month < 1 or month > 12) usage();
-    return month;
+fn parseNumber(text: []const u8, maximum: i32) i32 {
+    if (text.len == 0) usage();
+    var value: i32 = 0;
+    for (text) |digit| {
+        if (digit < '0' or digit > '9') usage();
+        value = value * 10 + @as(i32, digit - '0');
+        if (value > maximum) usage();
+    }
+    if (value < 1) usage();
+    return value;
 }
 
 fn currentYearMonth() struct { year: i32, month: u32 } {
-    var now = c.time(null);
-    var local_tm: c.struct_tm = undefined;
-    _ = c.localtime_r(&now, &local_tm);
+    const date = cal_local_date();
     return .{
-        .year = local_tm.tm_year + 1900,
-        .month = @as(u32, @intCast(local_tm.tm_mon + 1)),
+        .year = @divTrunc(date, 10000),
+        .month = @intCast(@mod(@divTrunc(date, 100), 100)),
     };
 }
 
@@ -173,11 +172,11 @@ pub fn main(init: std.process.Init.Minimal) !void {
         const today = currentYearMonth();
         printMonth(today.year, today.month);
     } else if (arg2 == null) {
-        const year = parseI32(arg1.?);
+        const year = parseNumber(arg1.?, 9999);
         printYear(year);
     } else {
-        const month = parseMonth(arg1.?);
-        const year = parseI32(arg2.?);
+        const month: u32 = @intCast(parseNumber(arg1.?, 12));
+        const year = parseNumber(arg2.?, 9999);
         printMonth(year, month);
     }
 }

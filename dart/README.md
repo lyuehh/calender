@@ -2,6 +2,9 @@
 
 This directory contains a Dart implementation of the lightweight `cal`-like command.
 
+See the [shared specification](../README.md) for argument limits, error behavior
+and the six-language regression suite (`make test` from the repository root).
+
 Build:
 
 ```bash

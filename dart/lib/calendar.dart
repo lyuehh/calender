@@ -30,16 +30,14 @@ String padRight(String text, int width) {
 }
 
 int daysInMonth(int year, int month) {
-  final nextMonthFirst = (month == 12)
-      ? DateTime(year + 1, 1, 1)
-      : DateTime(year, month + 1, 1);
-  return nextMonthFirst.subtract(const Duration(days: 1)).day;
+  // Day zero is the last day of the previous month. UTC avoids DST changes.
+  return DateTime.utc(year, month + 1, 0).day;
 }
 
 // Returns weekday of the first day of the month, 0 = Sunday .. 6 = Saturday.
 int firstWeekday(int year, int month) {
   // DateTime.weekday: Monday=1 .. Sunday=7.
-  return DateTime(year, month, 1).weekday % 7;
+  return DateTime.utc(year, month, 1).weekday % 7;
 }
 
 List<String> monthLines(int year, int month) {

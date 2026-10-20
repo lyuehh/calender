@@ -15,18 +15,13 @@ fn main {
       @lib.print_month(year, month)
     }
     1 =>
-      match parse_int(rest[0]) {
+      match parse_int(rest[0], 9999) {
         Some(year) => @lib.print_year(year)
         None => usage()
       }
     2 =>
-      match (parse_int(rest[0]), parse_int(rest[1])) {
-        (Some(month), Some(year)) =>
-          if month >= 1 && month <= 12 {
-            @lib.print_month(year, month)
-          } else {
-            println("cal: invalid month: " + rest[0])
-          }
+      match (parse_int(rest[0], 12), parse_int(rest[1], 9999)) {
+        (Some(month), Some(year)) => @lib.print_month(year, month)
         _ => usage()
       }
     _ => usage()
@@ -34,8 +29,8 @@ fn main {
 }
 
 ///|
-/// Parses a non-negative decimal integer, returning `None` on any invalid input.
-fn parse_int(s : String) -> Int32? {
+/// Parses ASCII decimal digits, checking the bound before any overflow.
+fn parse_int(s : String, maximum : Int32) -> Int32? {
   if s.length() == 0 {
     return None
   }
@@ -45,11 +40,16 @@ fn parse_int(s : String) -> Int32? {
       return None
     }
     value = value * 10 + (c.to_int() - '0'.to_int())
+    if value > maximum {
+      return None
+    }
   }
-  Some(value)
+  if value < 1 {
+    None
+  } else {
+    Some(value)
+  }
 }
 
 ///|
-fn usage() -> Unit {
-  println("usage: cal [[month] year]")
-}
+extern "C" fn usage() -> Unit = "cal_usage"

@@ -7,6 +7,18 @@ Never usage() {
   exit(2);
 }
 
+int parseNumber(String text, int maximum) {
+  if (text.isEmpty) usage();
+  var value = 0;
+  for (final digit in text.codeUnits) {
+    if (digit < 48 || digit > 57) usage();
+    value = value * 10 + digit - 48;
+    if (value > maximum) usage();
+  }
+  if (value < 1) usage();
+  return value;
+}
+
 void main(List<String> args) {
   final out = stdout;
 
@@ -15,13 +27,11 @@ void main(List<String> args) {
       final now = DateTime.now();
       printMonth(out, now.year, now.month);
     case 1:
-      final year = int.tryParse(args[0]);
-      if (year == null) usage();
+      final year = parseNumber(args[0], 9999);
       printYear(out, year);
     case 2:
-      final month = int.tryParse(args[0]);
-      final year = int.tryParse(args[1]);
-      if (month == null || year == null || month < 1 || month > 12) usage();
+      final month = parseNumber(args[0], 12);
+      final year = parseNumber(args[1], 9999);
       printMonth(out, year, month);
     default:
       usage();

@@ -4,7 +4,7 @@ BIN=cal
 
 build:
 	mkdir -p bin
-	zig build-exe src/main.zig -O ReleaseSafe -lc -femit-bin=bin/$(BIN)
+	zig build-exe src/main.zig src/platform.c -O ReleaseSafe -lc -femit-bin=bin/$(BIN)
 
 run: build
 	./bin/$(BIN)
