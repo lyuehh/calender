@@ -1,4 +1,4 @@
-LANGUAGES=go rust dart crystal zig moonbit
+LANGUAGES=go rust dart crystal zig moonbit swift
 
 .PHONY: build test $(LANGUAGES)
 

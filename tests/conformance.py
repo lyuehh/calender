@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare all six CLIs to Python's independent proleptic Gregorian calendar."""
+"""Compare all seven CLIs to Python's independent proleptic Gregorian calendar."""
 
 import calendar
 from datetime import datetime
@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LANGUAGES = ("go", "rust", "dart", "crystal", "zig", "moonbit")
+LANGUAGES = ("go", "rust", "dart", "crystal", "zig", "moonbit", "swift")
 MONTH_NAMES = (
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",

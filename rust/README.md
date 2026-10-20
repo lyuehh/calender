@@ -3,7 +3,7 @@
 This directory contains a Rust implementation of the lightweight `cal`-like command.
 
 See the [shared specification](../README.md) for argument limits, error behavior
-and the six-language regression suite (`make test` from the repository root).
+and the seven-language regression suite (`make test` from the repository root).
 
 Build:
 

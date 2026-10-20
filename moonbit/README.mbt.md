@@ -13,4 +13,4 @@ make test
 ```
 
 See the root README for the common argument, output and error contract and the
-shared six-language regression suite.
+shared seven-language regression suite.
