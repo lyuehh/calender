@@ -1,3 +1,5 @@
 cal
 target
 .DS_Store
+.crystal
+*.dwarf
